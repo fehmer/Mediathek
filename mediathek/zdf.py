@@ -31,6 +31,10 @@ class ZDFMediathek(Mediathek):
       self.baseType ="mms_asx_http";
     else:
       self.baseType ="rtsp_mov_http";
+      
+    self.initCount = 0;
+    self.countTopic = 0;
+    self.countVideo = 0;
     
     self.menuTree = (
       TreeNode("0","Startseite","http://www.zdf.de/ZDFmediathek/hauptnavigation/startseite?flash=off",True,
@@ -97,7 +101,11 @@ class ZDFMediathek(Mediathek):
     self._regex_extractVideoPageLink = re.compile(self.regex_videoPageLink);
     self._regex_extractVideoID = re.compile("/\\d+/");
     self._regex_extractVideoLink = re.compile("");
+    
+    
+    #tidy
     self.replace_html = re.compile("<.*?>");
+    self.regex_tidyTime = re.compile("(\\d{2}):(\\d{2})"); 
     
     self.rootLink = "http://www.zdf.de";
     self.searchSite = "http://www.zdf.de/ZDFmediathek/suche?flash=off"
@@ -187,6 +195,8 @@ class ZDFMediathek(Mediathek):
       date = time.strptime(dateString,"%d.%m.%Y %H:%M");
       size = 0;
       picture = "";
+      subUrl = None;
+      
       for picElement in configXml.getElementsByTagName("teaserimage"):
         picSizeString = picElement.getAttribute('key')
         picSizes = picSizeString.split("x");
@@ -198,6 +208,11 @@ class ZDFMediathek(Mediathek):
           self.gui.log("%d %s"%(diag,picElement.childNodes[0].data));
           picture = picElement.childNodes[0].data;
       links = {};
+      
+      for caption in configXml.getElementsByTagName("caption"):
+        for url in caption.getElementsByTagName("url"):
+          print "found url: %s"%url.childNodes[0].data;
+          subUrl= url.childNodes[0].data
       
       for streamObject in configXml.getElementsByTagName("formitaet"):
         baseType = streamObject.getAttribute("basetype")
@@ -245,7 +260,7 @@ class ZDFMediathek(Mediathek):
             break;
       configXml.unlink();
       if(len(links) > 0):
-        self.gui.buildVideoLink(DisplayObject(title,"",picture,detail,links,True, date),self,self.getItemCount());
+        self.gui.buildVideoLink(DisplayObject(title,"",picture,detail,links,True, date, None, subUrl),self,self.getItemCount());
     except:
       self.gui.log("Error while processing the xml-file: %s"%link);
       print xmlPage;
@@ -324,3 +339,16 @@ class ZDFMediathek(Mediathek):
         node.data = node.data.strip()
       else:
         self.cleanupNodes(node);
+        
+  def tidy(self, entry):
+    #self.gui.log("Tidy: %s"%entry);
+    entry['start']=self.fixTime(entry['start']);
+    entry['end']=self.fixTime(entry['end']);
+    return entry;
+
+  def fixTime(self, time):
+    time=int(time);
+    seconds=time%60;
+    minutes=(time/60)%60;
+    hours=(time/3600)%24;
+    return "%02d:%02d:%02d"%(hours,minutes,seconds);

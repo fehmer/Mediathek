@@ -138,14 +138,8 @@ class Mediathek(object):
     outfile = os.path.join(self.gui.SUBTITLES_DIR, 'mediathek.srt')
     fw = open(outfile, 'w')
     
-    print "loaded subtitle";
     txt = self.loadPage(url)
-    print "loaded subtitle %s",txt;
     if txt == '': txt = None;
-    
-    
-          
-       
        
     if not url or txt is None:
         print ("cannot download subtitle")
@@ -175,9 +169,11 @@ class Mediathek(object):
                 ma = {'start'     : m.group(1), 
                       'start_mil' : start_mil[:3], 
                       'end'       : m.group(3), 
-                      'end_mil'   : start_mil[:3], 
-                      'text'      : m.group(5)}
+                      'end_mil'   : end_mil[:3], 
+                      'text'      : self.unescape(m.group(5))}
         
+                
+                
                 ma['text'] = ma['text'].replace('&amp;', '&')
                 ma['text'] = ma['text'].replace('&gt;', '>')
                 ma['text'] = ma['text'].replace('&lt;', '<')
@@ -187,10 +183,8 @@ class Mediathek(object):
                 
                 ma['text'] = re.sub('<.*?>', '', ma['text'])
                 ma['text'] = re.sub('&#[0-9]+;', '', ma['text'])
-                ma['text']=self.unescape(ma['text']);
                 
                 ma=self.tidy(ma);
-        
                 if not prev:
                     # first match - do nothing wait till next line
                     prev = ma
@@ -209,11 +203,14 @@ class Mediathek(object):
                 entry = "%d\n%s,%s --> %s,%s\n%s\n\n" % (i, prev['start'], prev['start_mil'], prev['end'], prev['end_mil'], prev['text'])
                 
             if entry: 
-                fw.write(entry.encode('utf-8'))
+                fw.write(entry)
         
         fw.close()    
         return outfile
 
+
+  def tidy(self, entry):
+    return entry;
   ##
   # Removes HTML or XML character references and entities from a text string.
   # from Fredrik Lundh
@@ -228,15 +225,15 @@ class Mediathek(object):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
+                    return unichr(int(text[3:-1], 16)).encode("UTF-8")
                 else:
-                    return unichr(int(text[2:-1]))
+                    return unichr(int(text[2:-1])).encode("UTF-8")
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]]).encode("UTF-8")
             except KeyError:
                 pass
         return text # leave as is
