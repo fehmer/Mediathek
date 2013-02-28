@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 
-import urllib,xbmc,os
+import urllib,xbmc,os,xbmcgui, xbmcplugin, time
 from simplexbmc import SimpleXbmcGui
 from mediathek.factory import MediathekFactory
 __plugin__ = "mediathek"
@@ -74,6 +74,23 @@ else:
     link = urllib.unquote_plus(params.get("link", ""));
     gui.log(link);
     mediathek.buildPageMenu(link, 0);
+    
+  elif(action == "play"):
+    url = urllib.unquote_plus(params.get("playUrl", ""));
+    subUrl = urllib.unquote_plus(params.get("subUrl", ""));
+    li = xbmcgui.ListItem(path=url) 
+    li.setInfo(type='Video', infoLabels= {})
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
+    if subUrl != None and subUrl != 'None':
+      subs_file=mediathek.download_subtitles(subUrl);
+      if subs_file is not None:
+          player = xbmc.Player()
+          start_time = time.time()
+          while not player.isPlaying() and time.time() - start_time < 60:
+              time.sleep(1)
+              if player.isPlaying():
+                  xbmc.Player().setSubtitles(subs_file);
+     
   elif(action == "openPlayList"):
     link = urllib.unquote_plus(params.get("link", ""));
     gui.log(link);

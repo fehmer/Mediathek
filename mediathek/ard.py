@@ -90,11 +90,14 @@ class ARDMediathek(Mediathek):
     self.regex_Date = re.compile("\\d{2}\\.\\d{2}\\.\\d{2}");
     
     
+    #tidy
+    self.regex_tidyTime = re.compile("(\\d{2}):(\\d{2}):(\\d{2})"); 
     self.replace_html = re.compile("<.*?>");
     
     #regex für die MetaInfos
     self.regex_pictureLink = re.compile("ard/[^\"]*");
     self.regex_title = re.compile("<h3 class=\"mt-title\">.*<a.*>[^<]*?</a>")
+    self.regex_subtitle = re.compile(r'mediaCollection\.setSubtitleUrl\("(.*)", \d*\)');
     self.regex_category = re.compile("<p class=\"mt-source\">.*</p>");
     self.regex_description = re.compile("<p.*?>.*?</p>",re.DOTALL);
     
@@ -140,7 +143,7 @@ class ARDMediathek(Mediathek):
     displayObject = self.extractMetaInfo(self.rootLink+metaInfoLink, imageLink);
     
     if(isPlayable):
-      displayObject.link = self.getVideoLink(self.rootLink+videoDocumentLink);
+      displayObject.link, displayObject.subUrl = self.getVideoLink(self.rootLink+videoDocumentLink);
     else:
       displayObject.link = self.rootLink+videoDocumentLink;
       displayObject.isPlayable = False;
@@ -209,7 +212,7 @@ class ARDMediathek(Mediathek):
       metaInfoLink = self.regex_MetaInfo.search(element).group();
       
       displayObject = self.extractMetaInfo(self.rootLink+metaInfoLink, imageLink);
-      displayObject.link = self.getVideoLink(self.rootLink+videoDocumentLink);
+      displayObject.link, displayObject.subUrl = self.getVideoLink(self.rootLink+videoDocumentLink);
       
       self.gui.buildVideoLink(displayObject,self, counter);
     return counter;
@@ -246,6 +249,7 @@ class ARDMediathek(Mediathek):
     self.gui.log("VideoLink: "+link);
     videoPage = self.loadPage(link);
     linkDict = {};
+    subUrl = None;
     for element in self.regex_MediaCollection.findall(videoPage):
       splitted = element.split(", ");
       if(splitted[1] == "0"):
@@ -262,4 +266,22 @@ class ARDMediathek(Mediathek):
         url = links[0].replace("\"","")
         playPath = links[1].replace("\"","")
         linkDict[quality] = SimpleLink("%s playpath=%s"%(url,playPath),0);
-    return linkDict;
+        
+    subtitle = self.regex_subtitle.search(videoPage)
+    if(subtitle != None):
+      subUrl = "http://www.ard.de" + subtitle.group(1);  
+      self.gui.log("Subtitle URL: %s"%subUrl);
+    return linkDict, subUrl;
+
+  def tidy(self, entry):
+      entry['start']=self.fixTime(entry['start']);
+      entry['end']=self.fixTime(entry['end']);
+      return entry;
+  
+  def fixTime(self, time):
+      m=self.regex_tidyTime.match(time);
+      hour=int(m.group(1));
+      if(hour > 9): hour = hour -10;
+      return "%02d:%s:%s"%(hour,m.group(2),m.group(3));
+  
+  

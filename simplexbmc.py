@@ -22,6 +22,7 @@ from xml.dom import minidom
 regex_findLink = re.compile("mms://[^\"]*wmv");
 
 __plugin__ = "Mediathek"
+__plugin_handle__ = int(sys.argv[1])
 
 settings = xbmcaddon.Addon(id='plugin.video.mediathek')
 translation = settings.getLocalizedString
@@ -33,6 +34,9 @@ class SimpleXbmcGui(object):
     self.preferedStreamTyp = int(xbmcplugin.getSetting(int(sys.argv[1]), "preferedStreamType"));
     
     self.log("quality: %s"%(self.quality));
+
+    self.enableSubs = xbmcplugin.getSetting(int(sys.argv[1]),"enableSubs") in ['true', 'True'];
+    self.SUBTITLES_DIR  = xbmc.translatePath("special://temp")
     
   def log(self, msg):
     if type(msg) not in (str, unicode):
@@ -47,7 +51,10 @@ class SimpleXbmcGui(object):
       title = transformHtmlCodes(displayObject.title +" - "+ displayObject.subTitle);
     
     if displayObject.date is not None:
-      title = "(%s) %s"%(time.strftime("%d.%m",displayObject.date),title);  
+      title = "(%s) %s"%(time.strftime("%d.%m",displayObject.date),title);
+      
+    if self.enableSubs is True and displayObject.subUrl is not None:
+      title = "%s (UT)"%title;  
     
     if displayObject.picture is not None:
       listItem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png", thumbnailImage=displayObject.picture)
@@ -99,11 +106,21 @@ class SimpleXbmcGui(object):
       
       
         listItem.setProperty('IsPlayable', 'true');
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=link.basePath,listitem=listItem,isFolder=False,totalItems = objectCount)
+        base = sys.argv[0];
+        d = {};
+        d['action']="play";
+        d['playUrl']=link.basePath;
+        d['subUrl']=displayObject.subUrl;
+        d['type']=mediathek.name();
+        params = urllib.urlencode(d, True);
+        url= base + '?&' + params;
+        
+        xbmcplugin.addDirectoryItem(handle=__plugin_handle__,url=url,listitem=listItem,isFolder=False,totalItems = objectCount)
+        #xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=link.basePath,listitem=listItem,isFolder=False,totalItems = objectCount)
     else:
       url = "%s?type=%s&action=openTopicPage&link=%s" % (sys.argv[0],mediathek.name(), urllib.quote_plus(displayObject.link))
-      xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=listItem,isFolder=True,totalItems = objectCount)
-      
+      xbmcplugin.addDirectoryItem(handle=__plugin_handle__,url=url,listitem=listItem,isFolder=True,totalItems = objectCount)
+
   def buildMenuLink(self,menuObject,mediathek,objectCount):
     title = menuObject.name;
     listItem=xbmcgui.ListItem(title, iconImage="DefaultFolder.png")
