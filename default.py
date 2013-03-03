@@ -84,12 +84,12 @@ else:
     if subUrl != None and subUrl != 'None':
       subs_file=mediathek.download_subtitles(subUrl);
       if subs_file is not None:
-          player = xbmc.Player()
-          start_time = time.time()
-          while not player.isPlaying() and time.time() - start_time < 60:
-              time.sleep(1)
-              if player.isPlaying():
-                  xbmc.Player().setSubtitles(subs_file);
+        player = xbmc.Player()
+        start_time = time.time()
+        while not player.isPlaying() and time.time() - start_time < 60:
+          time.sleep(1)
+        if player.isPlaying():
+          xbmc.Player().setSubtitles(subs_file);
      
   elif(action == "openPlayList"):
     link = urllib.unquote_plus(params.get("link", ""));
