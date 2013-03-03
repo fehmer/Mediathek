@@ -115,8 +115,10 @@ class SimpleXbmcGui(object):
         params = urllib.urlencode(d, True);
         url= base + '?&' + params;
         
-        xbmcplugin.addDirectoryItem(handle=__plugin_handle__,url=url,listitem=listItem,isFolder=False,totalItems = objectCount)
-        #xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=link.basePath,listitem=listItem,isFolder=False,totalItems = objectCount)
+        if self.enableSubs and displayObject.subUrl is not None:
+          xbmcplugin.addDirectoryItem(handle=__plugin_handle__,url=url,listitem=listItem,isFolder=False,totalItems = objectCount)
+        else:
+          xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=link.basePath,listitem=listItem,isFolder=False,totalItems = objectCount)
     else:
       url = "%s?type=%s&action=openTopicPage&link=%s" % (sys.argv[0],mediathek.name(), urllib.quote_plus(displayObject.link))
       xbmcplugin.addDirectoryItem(handle=__plugin_handle__,url=url,listitem=listItem,isFolder=True,totalItems = objectCount)

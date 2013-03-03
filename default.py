@@ -81,7 +81,7 @@ else:
     li = xbmcgui.ListItem(path=url) 
     li.setInfo(type='Video', infoLabels= {})
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, li)
-    if gui.enableSubs and subUrl != None and subUrl != 'None':
+    if subUrl != None and subUrl != 'None':
       subs_file=mediathek.download_subtitles(subUrl);
       if subs_file is not None:
         player = xbmc.Player()

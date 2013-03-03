@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
-  id="plugin.video.mediathek"
+  id="plugin.video.mediathek.subs"
   version="0.4.8-p1"
-  name="Mediathek"
+  name="Mediathek with subs"
   provider-name="Raptor 2101 [raptor2101@gmx.de]">
   <requires>
    <import addon="xbmc.python" version="2.1.0"/>
