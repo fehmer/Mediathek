@@ -269,8 +269,9 @@ class ARDMediathek(Mediathek):
         
     subtitle = self.regex_subtitle.search(videoPage)
     if(subtitle != None):
-      subUrl = "http://www.ard.de" + subtitle.group(1);  
-      self.gui.log("Subtitle URL: %s"%subUrl);
+      subUrlPre = "http://www.ard.de" + subtitle.group(1);  
+      self.gui.log("Subtitle URL: %s"%subUrlPre);
+      if self.check_subtitles(subUrlPre): subUrl=subUrlPre;
     return linkDict, subUrl;
 
   def tidy(self, entry):
@@ -283,5 +284,4 @@ class ARDMediathek(Mediathek):
       hour=int(m.group(1));
       if(hour > 9): hour = hour -10;
       return "%02d:%s:%s"%(hour,m.group(2),m.group(3));
-  
   
