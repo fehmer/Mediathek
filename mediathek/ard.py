@@ -268,7 +268,7 @@ class ARDMediathek(Mediathek):
         linkDict[quality] = SimpleLink("%s playpath=%s"%(url,playPath),0);
         
     subtitle = self.regex_subtitle.search(videoPage)
-    if(subtitle != None):
+    if(subtitle != None and self.gui.enableSubs):
       subUrlPre = "http://www.ard.de" + subtitle.group(1);  
       self.gui.log("Subtitle URL: %s"%subUrlPre);
       if self.check_subtitles(subUrlPre): subUrl=subUrlPre;

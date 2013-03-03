@@ -122,6 +122,7 @@ class WDRMediathek(Mediathek):
     
     self._regex_extractAudioLink = re.compile(self.rootLink+"/mediathek/.*?\\.mp3");
     self._regex_extractVideoLink = re.compile("(dsl|isdn)Src=rtmp://.*?\\.(mp4|flv)");
+    self._regex_extractSubtitleLink = re.compile("untertitelurl: '(.*?)'");
     
     self.replace_html = re.compile("<.*?>");
     self.replace_tag = re.compile("(<meta name=\".*?\" content=\"|<link rel=\"image_src\" href=\"|\" />)");
@@ -159,7 +160,8 @@ class WDRMediathek(Mediathek):
       link = self._regex_extractLink.search(videoPageLink.group()).group();
       print link;
       displayObject = self.generateDisplayObject(self.rootLink+link);
-      self.gui.buildVideoLink(displayObject,self,len(videoPageLinks));
+      if displayObject != None:
+        self.gui.buildVideoLink(displayObject,self,len(videoPageLinks));
   
   def readText(self,node,textNode):
     try:
@@ -178,15 +180,20 @@ class WDRMediathek(Mediathek):
     for itemNode in items:
       link = self.readText(itemNode,"link");
       displayObject = self.generateDisplayObject(link);
-      self.gui.buildVideoLink(displayObject,self,len(items));
+      if displayObject != None:
+        self.gui.buildVideoLink(displayObject,self,len(items));
       
   def generateDisplayObject(self,videoPageLink):
     mainPage = self.loadPage(videoPageLink);
+    if mainPage == '': return;
     title = unicode(self._regex_extractTitle.search(mainPage).group(),'ISO-8859-1');
     description = unicode(self._regex_extractDescription.search(mainPage).group(),'ISO-8859-1');
     picture = unicode(self._regex_extractPicture.search(mainPage).group(),'ISO-8859-1');
     date = self._regex_extractDate.search(mainPage).group();
     duration =  self._regex_extractDuration.search(mainPage).group(1);
+    
+    subtitleUrl=self._regex_extractSubtitleLink.search(mainPage).group(1);
+    print "found subtitle %s"%subtitleUrl;
 
     title =  self.replace_html.sub("", title);
     description = self.replace_tag.sub("",description);
@@ -207,7 +214,7 @@ class WDRMediathek(Mediathek):
       linkString = self._regex_extractAudioLink.search(mainPage).group();
       links[0] = self.extractLink(linkString);
      
-    return DisplayObject(title,"",picture,description,links,True, date, duration)
+    return DisplayObject(title,"",picture,description,links,True, date, duration, subtitleUrl)
    
   def extractLink(self, linkString):
     if(linkString.find("mediartmp://")>-1):
@@ -218,3 +225,17 @@ class WDRMediathek(Mediathek):
       return SimpleLink("http://%s"%linkString[1], 0);
     else:
       return SimpleLink(linkString, 0);
+  
+
+  def tidy(self, entry):
+    #self.gui.log("Tidy: %s"%entry);
+    entry['start']=self.fixTime(entry['start']);
+    entry['end']=self.fixTime(entry['end']);
+    return entry;
+
+  def fixTime(self, time):
+    time=int(time);
+    seconds=time%60;
+    minutes=(time/60)%60;
+    hours=(time/3600)%24;
+    return "%02d:%02d:%02d"%(hours,minutes,seconds);
