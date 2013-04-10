@@ -24,12 +24,12 @@ regex_findLink = re.compile("mms://[^\"]*wmv");
 __plugin__ = "Mediathek"
 __plugin_handle__ = int(sys.argv[1])
 
-settings = xbmcaddon.Addon(id='plugin.video.mediathek')
+settings = xbmcaddon.Addon(id='plugin.video.mediathek.subs')
 translation = settings.getLocalizedString
 
 class SimpleXbmcGui(object):
   def __init__(self):
-    self.settings = xbmcaddon.Addon(id='plugin.video.mediathek');
+    self.settings = xbmcaddon.Addon(id='plugin.video.mediathek.subs');
     self.quality = int(xbmcplugin.getSetting(int(sys.argv[1]), "quality" ));
     self.preferedStreamTyp = int(xbmcplugin.getSetting(int(sys.argv[1]), "preferedStreamType"));
     
