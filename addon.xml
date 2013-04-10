@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="plugin.video.mediathek.subs"
-  version="0.4.8-p1"
+  version="0.5.2-p1"
   name="Mediathek with subs"
   provider-name="Raptor 2101 [raptor2101@gmx.de]">
   <requires>
